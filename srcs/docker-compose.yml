@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - wp-network
+    depends_on:
+      - wordpress
+
+  wordpress:
+    image: busybox
+    container_name: wordpress
+    command: sleep 3600
+    networks:
+      - wp-network
+
+volumes:
+  wordpress_data:
+
+networks:
+  wp-network:
+
