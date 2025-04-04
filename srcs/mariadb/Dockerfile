@@ -1,20 +1,21 @@
 FROM debian:bullseye
 
-RUN	apt update -y \
-	&& apt upgrade -y \
-	&& apt install curl -y \
-	&& apt-get install apt-transport-https curl -y \
-	&& mkdir -p /etc/apt/keyrings \
-	&& curl -o /etc/apt/keyrings/mariadb-keyring.pgp 'https://mariadb.org/mariadb_release_signing_key.pgp' \
-	&& apt-get install mariadb-server -y \
-	&& apt-get install mariadb-client -y \
-	&& mkdir -p /run/mysqld
+ENV DEBIAN_FRONTEND=noninteractive
 
-COPY conf/50-server.cnf	/etc/mysql/mariadb.conf.d/50-server.cnf
-COPY tools/script.sh /home/script.sh
+# Installation de MariaDB
+RUN apt update && \
+    apt install -y mariadb-server && \
+    mkdir -p /run/mysqld && \
+    chown -R mysql:mysql /run/mysqld && \
+    chmod 755 /run/mysqld
 
-RUN chmod +x /home/script.sh
+# Copie de la config SQL d'initialisation
+COPY tools/init.sql /docker-entrypoint-initdb.d/init.sql
 
-CMD ["/home/script.sh"]
-CMD ["mysql_install_db"]
-CMD ["mysqld"]
+# Entrypoint de démarrage personnalisé
+COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 3306
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
