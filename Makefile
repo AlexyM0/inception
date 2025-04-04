@@ -1,22 +1,35 @@
+# ----------- COMMANDES PRINCIPALES -----------
+
 all:
-		docker compose -f ./srcs/docker-compose.yml up -d --build
+	docker compose -f ./srcs/docker-compose.yml up -d --build
 
 config:
-		docker compose -f ./srcs/docker-compose.yml config
+	docker compose -f ./srcs/docker-compose.yml config
 
 clean:
-		docker compose -f ./srcs/docker-compose.yml down -v
+	docker compose -f ./srcs/docker-compose.yml down -v
 
-fclean:
-		make clean
-		docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q); docker network rm $(docker network ls -q) 2>/dev/null
+fclean: clean
+	@docker ps -qa | xargs -r docker stop || true
+	@docker ps -qa | xargs -r docker rm || true
+	@docker images -qa | xargs -r docker rmi -f || true
+	@docker volume ls -q | xargs -r docker volume rm || true
+	@docker network ls -q | grep -v "bridge\|host\|none" | xargs -r docker network rm || true
 
-prune:
-		make clean
-		docker system prune
 
-re:
-		make fclean
-		make all
+prune: clean
+	docker system prune -f
 
-.PHONY: all config clean fclean prune re
+re: fclean all
+
+# ----------- COMMANDES BONUS UTILES -----------
+
+status:
+	docker ps -a
+
+logs:
+	docker compose -f ./srcs/docker-compose.yml logs -f
+
+# ----------- POUR ÉVITER LES ERREURS MAKE -----------
+
+.PHONY: all config clean fclean prune re status logs
