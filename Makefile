@@ -1,4 +1,3 @@
-# ----------- COMMANDES PRINCIPALES -----------
 all:
 	docker compose -f ./srcs/docker-compose.yml up -d --build
 
@@ -7,8 +6,8 @@ config:
 
 clean:
 	docker compose -f ./srcs/docker-compose.yml down -v
-	@sudo rm -rf /home/alexy/data/mariadb/* /home/alexy/data/mariadb/.* 2>/dev/null || true
-	@sudo rm -rf /home/alexy/data/wordpress/* /home/alexy/data/wordpress/.* 2>/dev/null || true
+	@sudo rm -rf /home/almichel/data/mariadb/* /home/almichel/data/mariadb/.* 2>/dev/null || true
+	@sudo rm -rf /home/almichel/data/wordpress/* /home/almichel/data/wordpress/.* 2>/dev/null || true
 fclean: clean
 	@docker ps -qa | xargs -r docker stop || true
 	@docker ps -qa | xargs -r docker rm || true
@@ -19,6 +18,5 @@ fclean: clean
 
 re: fclean all
 
-# ----------- POUR ÉVITER LES ERREURS MAKE -----------
 
 .PHONY: all config clean fclean prune re status logs
