@@ -17,4 +17,4 @@ EXPOSE 9000
 
 ENTRYPOINT ["/home/script.sh"]
 
-CMD ["/usr/sbin/php-fpm7.4", "-F"]
+CMD ["php-fpm7.4", "-F"]

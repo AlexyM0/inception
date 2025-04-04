@@ -9,10 +9,13 @@ RUN apt update && \
     chown -R mysql:mysql /run/mysqld && \
     chmod 755 /run/mysqld
 
-# Copie de la config SQL d'initialisation
+# Copie de la config MariaDB (pour bind-address)
+COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# Script SQL d'initialisation
 COPY tools/init.sql /docker-entrypoint-initdb.d/init.sql
 
-# Entrypoint de démarrage personnalisé
+# Entrypoint custom
 COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
