@@ -1,29 +1,64 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  nginx:
-    build: ./nginx
-    container_name: nginx
-    restart: always
-    ports:
-      - "443:443"
-    volumes:
-      - wordpress_data:/var/www/html
+  mariadb:
+    container_name: mariadb
     networks:
-      - wp-network
+      - inception
+    build:
+      context: mariadb
+      dockerfile: Dockerfile
+    volumes:
+      - mariadb:/var/lib/mysql
+    restart: always
+    env_file:
+      - .env
+    expose:
+      - 3306
+  nginx:
+    container_name: nginx
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - inception
     depends_on:
       - wordpress
-
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - 443:443
+    restart: always
   wordpress:
-    image: busybox
     container_name: wordpress
-    command: sleep 3600
+    env_file:
+      - .env
+    volumes:
+      - wordpress:/var/www/html
     networks:
-      - wp-network
-
+      - inception
+    build:
+      context: wordpress
+      dockerfile: Dockerfile
+    depends_on:
+      - mariadb
+    restart: always
+    expose:
+      - 9000
 volumes:
-  wordpress_data:
-
+  wordpress:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/alexy/data/wordpress'
+  mariadb:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/alexy/data/mariadb'
 networks:
-  wp-network:
+  inception:
+    driver: bridge
 

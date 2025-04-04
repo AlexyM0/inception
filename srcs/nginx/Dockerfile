@@ -1,21 +1,19 @@
-# nginx/Dockerfile
-
 FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y \
-    nginx \
-    openssl \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN	apt update -y \
+        && apt upgrade -y \
+        && apt install nginx -y \
+        && mkdir -p /etc/nginx/ssl \
+	&& apt install openssl -y \
+	&& openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
+		-out /etc/nginx/ssl/inception.crt \
+		-keyout /etc/nginx/ssl/inception.key \
+		-subj "/C=FR/ST=Paris/L=Paris/O=42/OU=almichel/CN=almichel/" \
+	&& mkdir -p /var/run/nginx \
+	&& chmod 755 /var/www/html \
+	&& chown -R www-data:www-data /var/www/html
 
-RUN mkdir -p /run/nginx /etc/nginx/ssl
-
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -subj "/C=FR/ST=IDF/L=Paris/O=Dev/OU=Dev/CN=localhost" \
-  -keyout /etc/nginx/ssl/nginx.key \
-  -out /etc/nginx/ssl/nginx.crt
+COPY conf/default /etc/nginx/sites-available/default
 
 EXPOSE 443
 
