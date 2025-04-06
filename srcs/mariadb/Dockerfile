@@ -1,24 +1,15 @@
 FROM debian:bullseye
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get upgrade -y
 
-# Installation de MariaDB
-RUN apt update && \
-    apt install -y mariadb-server && \
-    mkdir -p /run/mysqld && \
-    chown -R mysql:mysql /run/mysqld && \
-    chmod 755 /run/mysqld
+RUN apt-get install mariadb-server -y
 
-# Copie de la config MariaDB (pour bind-address)
+RUN apt-get install procps -y
+
 COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
 
-# Script SQL d'initialisation
-COPY tools/init.sql /docker-entrypoint-initdb.d/init.sql
+COPY tools/auto_config.sh /auto_config.sh
 
-# Entrypoint custom
-COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/bin/sh", "auto_config.sh"]
 
 EXPOSE 3306
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
