@@ -4,30 +4,27 @@ set -e
 echo "📂 Dossier courant : $(pwd)"
 echo "💬 Commande CMD reçue : $@"
 
-# Nettoyage du dossier WordPress
 cd /var/www/html
-rm -rf ./*
-echo "🧹 Dossier vidé"
 
-# Installer WP-CLI s'il n'existe pas
-if ! command -v wp &> /dev/null; then
-  echo "📦 Téléchargement de WP-CLI..."
-  curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-  chmod +x wp-cli.phar
-  mv wp-cli.phar /usr/local/bin/wp
-fi
+# Ne faire l'installation que si wp-config.php n'existe pas
+if [ ! -f wp-config.php ]; then
+  echo "🧹 Dossier vidé"
+  rm -rf ./*
 
-# Attente que MariaDB soit prêt
-echo "🔁 Test MariaDB"
-until mysqladmin ping -h mariadb -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; do
-	echo "⏳ En attente de MariaDB..."
-	sleep 2
-done
+  # Installer WP-CLI s'il n'existe pas
+  if ! command -v wp &> /dev/null; then
+    echo "📦 Téléchargement de WP-CLI..."
+    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    chmod +x wp-cli.phar
+    mv wp-cli.phar /usr/local/bin/wp
+  fi
 
-# Installation de WordPress
-if [ -f ./wp-config.php ]; then
-  echo "✅ WordPress déjà installé"
-else
+  echo "🔁 Test MariaDB"
+  until mysqladmin ping -h mariadb -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; do
+    echo "⏳ En attente de MariaDB..."
+    sleep 2
+  done
+
   echo "📥 Téléchargement de WordPress..."
   wp core download --allow-root
 
@@ -47,8 +44,11 @@ else
     --skip-email --allow-root
 
   echo "👤 Création d’un utilisateur secondaire..."
+  wp user get "$USER_USER" --allow-root || \
   wp user create "$USER_USER" "$USER_MAIL" \
     --user_pass="$USER_PASSWORD" --role=author --allow-root
+else
+  echo "✅ WordPress déjà installé — rien à faire"
 fi
 
 # Préparation PHP-FPM
